@@ -2,6 +2,28 @@
 
 ## 环境配置
 
+
+```
+conda create -n bdq python=3.9
+conda env list
+source activate bdq
+```
+
+```
+# cuda:11.4没有对应的版本，但可以向下兼容，所以选择cuda=11.3的版本安装cudatoolkit、torch
+conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.3 -c pytorch
+pip install tensorboard_logger
+pip install tensorflow==2.12.0
+pip install tqdm
+pip install scikit-video
+pip install matplotlib
+pip install opencv-python
+pip install imageio==2.9.0
+pip install numpy==1.23
+```
+
+## 查看GPU信息
+
 ```
 nvidia-smi
 
@@ -20,30 +42,29 @@ source activate bdq
 
 ### 我的
 ```
-cd project/BDQ_PrivacyAR/action-recognition-pytorch-entropy
 cd BDQ_PrivacyAR/action-recognition-pytorch-entropy
-python train.py --datadir data/SBU_splits
-python train.py --multiprocessing-distributed --datadir data/SBU_splits
 
-# 密集采样
-python train.py --multiprocessing-distributed --datadir data/SBU_splits --dense_sampling
-
-# 使用特定gpu
-python train.py --multiprocessing-distributed --gpu 0 1 3 --datadir data/SBU_splits --dense_sampling
+# 分布式训练环境(默认SBU数据集的配置)
+python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling
+## 测试动作识别
+python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type target  --gpu 0 -b 1
+## 测试隐私识别
+python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type target  --gpu 0 -b 1
 
 # KTH数据集
-python train.py --multiprocessing-distributed --datadir data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1
-python test.py --datadir data/KTH_splits --dataset KTH --groups 16 --dense_sampling --disable_scaleup --model_type target  --gpu 1 -b 1
-python test.py --datadir data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type budget
+python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1
+## 测试动作识别
+python test.py --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
+## 测试隐私识别
+python test.py --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 1
 
 # IPN数据集
-python train.py --multiprocessing-distributed --datadir data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8
-
+python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8
+## 测试动作识别
+python test.py --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
+## 测试隐私识别
+python test.py --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 1
 
 ```
 
-### 测试
-```
-python test.py --datadir data/SBU_splits --multiprocessing-distributed --gpu 2
-```
 
