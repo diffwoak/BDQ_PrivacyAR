@@ -40,12 +40,15 @@ source activate bdq
 
 ## 快速使用
 
-### 我的
 ```
 cd BDQ_PrivacyAR/action-recognition-pytorch-entropy
 
 # 分布式训练环境(默认SBU数据集的配置)
 python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling
+# 固定BDQ 训练动作识别网络
+python train_target.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling
+# 固定BDQ 训练隐私识别网络
+python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling
 ## 测试动作识别
 python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type target  --gpu 0 -b 1
 ## 测试隐私识别
@@ -53,6 +56,10 @@ python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --mode
 
 # KTH数据集
 python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1
+# 固定BDQ 训练动作识别网络
+python train_target.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1
+# 固定BDQ 训练隐私识别网络
+python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1
 ## 测试动作识别
 python test.py --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
 ## 测试隐私识别
@@ -60,6 +67,10 @@ python test.py --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 
 
 # IPN数据集
 python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8
+# 固定BDQ 训练动作识别网络
+python train_target.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8
+# 固定BDQ 训练隐私识别网络
+python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8
 ## 测试动作识别
 python test.py --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
 ## 测试隐私识别

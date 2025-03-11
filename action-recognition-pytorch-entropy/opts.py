@@ -13,7 +13,7 @@ def arg_parser():
     parser.add_argument('--dropout', default=0.2, type=float,
                         help='dropout ratio before the final layer')  #暂无用
     parser.add_argument('--groups', default=16, type=int, help='number of frames')
-    parser.add_argument('--frames_per_group', default=8, type=int,
+    parser.add_argument('--frames_per_group', default=1, type=int,
                         help='[uniform sampling] number of frames per group; '
                              '[dense sampling]: sampling frequency') # 每个group采样多少帧
     # dense_sampling: frames_per_group 为间隔（如每隔1帧）采样 groups 个连续或邻近帧

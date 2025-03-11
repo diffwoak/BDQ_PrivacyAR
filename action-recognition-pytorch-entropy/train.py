@@ -316,14 +316,14 @@ def main_worker(gpu, ngpus_per_node, args):
                     epoch + 1, total_epochs, val_losses, valT_top1,valB_top1),flush=True)
 
         # 保存模型参数
-        if (epoch+1) % 10 == 0:
-            best_top1 = valT_top1
-            if args.rank == 0:
-                if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-                    save_dict = model_degrad.module.state_dict()  # 提取内部模型
-                else:
-                    save_dict = model_degrad.state_dict()
-                torch.save(save_dict, save_dest+'/adv/'+ 'model_degrad_e'+ str(epoch+1) +'.ckpt')
+        
+        best_top1 = valT_top1
+        if args.rank == 0:
+            if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+                save_dict = model_degrad.module.state_dict()  # 提取内部模型
+            else:
+                save_dict = model_degrad.state_dict()
+            torch.save(save_dict, save_dest+'/adv/'+ 'model_degrad' + '.ckpt')
                 # save_dict = {'net': model_target,
                 #                 'epoch': epoch,
                 #                 'state_dict': model_target.state_dict(),

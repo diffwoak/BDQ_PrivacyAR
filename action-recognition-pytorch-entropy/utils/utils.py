@@ -226,7 +226,6 @@ def validate(data_loader, model_degrad, model_target, model_budget, train_criter
     model_budget.eval()
 
     with torch.no_grad(), tqdm(total=len(data_loader)) as t_bar:
-        end = time.time()
 
         for i, (images, target_actor, target_action) in enumerate(data_loader):
 
