@@ -213,7 +213,8 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # BDQ编码器
     checkpoint_degrad = torch.load(f'/home/chenxinyu/project/checkpoints/{args.dataset}/model_degrad.ckpt', map_location="cpu")
-    model_degrad.load_state_dict(checkpoint_degrad['state_dict'])
+    model_degrad.load_state_dict(checkpoint_degrad)
+    # model_degrad.load_state_dict(checkpoint_degrad['state_dict'])
         # 单卡加载
     # state_dict = {k.replace("module.", ""): v for k, v in checkpoint_degrad['model'].items()}
     # model_degrad.load_state_dict(state_dict)

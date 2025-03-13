@@ -52,7 +52,7 @@ python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/d
 ## 测试动作识别
 python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type target  --gpu 0 -b 1
 ## 测试隐私识别
-python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type target  --gpu 0 -b 1
+python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type budget  --gpu 0 -b 1
 
 # KTH数据集
 python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1

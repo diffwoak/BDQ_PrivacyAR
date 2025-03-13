@@ -110,20 +110,20 @@ def main():
 
     print("=> using pre-trained model '{}'".format(arch_name))
     checkpoint = torch.load(f'/home/chenxinyu/project/checkpoints/{args.dataset}/model_degrad.ckpt', map_location='cpu')
-    # model_degrad.load_state_dict(checkpoint['state_dict'])
-    state_dict = {k.replace("module.", ""): v for k, v in checkpoint['state_dict'].items()}
+    # model_degrad.load_state_dict(checkpoint)
+    state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
     model_degrad.load_state_dict(state_dict)
     del checkpoint
     if args.model_type == 'target':
         checkpoint = torch.load(f'/home/chenxinyu/project/checkpoints/{args.dataset}/model_target.ckpt', map_location='cpu')
         # model.load_state_dict(checkpoint['state_dict'])
-        state_dict = {k.replace("module.", ""): v for k, v in checkpoint['state_dict'].items()}
+        state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
         model.load_state_dict(state_dict)
         del checkpoint
     else:
         checkpoint = torch.load(f'/home/chenxinyu/project/checkpoints/{args.dataset}/model_budget.ckpt', map_location='cpu')
         # model.load_state_dict(checkpoint['state_dict'])
-        state_dict = {k.replace("module.", ""): v for k, v in checkpoint['state_dict'].items()}
+        state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
         model.load_state_dict(state_dict)
         del checkpoint
 
