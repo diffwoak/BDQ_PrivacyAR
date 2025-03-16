@@ -144,6 +144,7 @@ def train(data_loader, model_degrad, model_target, model_budget, optimizer_t, op
         for i, (images, target_actor, target_action) in enumerate(data_loader):
             # compute output
             images = images.cuda(gpu_id, non_blocking=True)
+            # print(f"images:{images.size()}")
             target_action = target_action.cuda(gpu_id, non_blocking=True)
             target_actor = target_actor.cuda(gpu_id, non_blocking=True)
 

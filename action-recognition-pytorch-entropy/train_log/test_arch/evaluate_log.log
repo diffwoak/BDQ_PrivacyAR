@@ -1,3 +1,17 @@
 Val@224(256) (# crops = 1, # clips = 1): 	Top@1: 66.6667	Top@5: 95.8333
 Val@224(256) (# crops = 1, # clips = 1): 	Top@1: 87.5000	Top@5: 95.8333
 Val@224(256) (# crops = 1, # clips = 1): 	Top@1: 58.3333	Top@5: 97.9167
+Val@224(256) (# crops = 1, # clips = 1): 	Top@1: 62.5000	Top@5: 100.0000
+Val@224(256) (# crops = 1, # clips = 1): 	Top@1: 82.4324	Top@5: 97.2973
+Val@224(256) (# crops = 1, # clips = 1): 	Top@1: 54.0541	Top@5: 97.2973
+Val@224(256) (# crops = 1, # clips = 1): 	Top@1: 82.4324	Top@5: 97.2973
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 65.3333	Top@5: 100.0000
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 25.3333	Top@5: 60.6667
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 66.6667	Top@5: 100.0000
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 20.6667	Top@5: 52.0000
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 72.0000	Top@5: 100.0000
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 19.3333	Top@5: 54.6667
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 75.0000	Top@5: 100.0000
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 23.6607	Top@5: 61.8304
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 84.5982	Top@5: 100.0000
+Val@224(224) (# crops = 1, # clips = 1): 	Top@1: 37.5000	Top@5: 73.4375

@@ -115,28 +115,27 @@ class ResNet(nn.Module):
                  sample_duration=16,
                  shortcut_type='B',
                  num_classes=8):
-        self.inplanes = 64  # 原为 64，直接减半
+        self.inplanes = 64
         super(ResNet, self).__init__()
         self.conv1 = nn.Conv3d(
             3,
-            64,  # 原为 64，输入通道减半
+            64,
             kernel_size=7,
             stride=(1, 2, 2),
             padding=(3, 3, 3),
             bias=False)
-        self.bn1 = nn.BatchNorm3d(64) # 原为 64，输入通道减半
+        self.bn1 = nn.BatchNorm3d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool3d(kernel_size=(3, 3, 3), stride=2, padding=1)
-        # 修改后续各层通道基数（planes参数）
-        self.layer1 = self._make_layer(block, 64, layers[0], shortcut_type)   # 原为 64
-        self.layer2 = self._make_layer(block, 128, layers[1], shortcut_type, stride=2)  # 原为 128
-        self.layer3 = self._make_layer(block, 256, layers[2], shortcut_type, stride=2) # 原为 256
-        self.layer4 = self._make_layer(block, 512, layers[3], shortcut_type, stride=2) # 原为 512
-        last_duration = int(math.ceil(16 / 16))#sample_duration
+        self.layer1 = self._make_layer(block, 64, layers[0], shortcut_type)
+        self.layer2 = self._make_layer(block, 128, layers[1], shortcut_type, stride=2)
+        self.layer3 = self._make_layer(block, 256, layers[2], shortcut_type, stride=2)
+        self.layer4 = self._make_layer(block, 512, layers[3], shortcut_type, stride=2)
+        last_duration = int(math.ceil(16 / 16))
         last_size = int(math.ceil(224 / 32))
         self.avgpool = nn.AvgPool3d(
             (last_duration, last_size, last_size), stride=1)
-        self.fc1 = nn.Linear(512 * block.expansion, num_classes)    # 原为 512
+        self.fc1 = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv3d):
@@ -177,10 +176,6 @@ class ResNet(nn.Module):
         x = self.relu(x)
         x = self.maxpool(x)
 
-        # x = self.layer1(x)
-        # x = self.layer2(x)
-        # x = self.layer3(x)
-        # x = self.layer4(x)
         x.requires_grad_(True)
         x = checkpoint(self.layer1, x)
         x.requires_grad_(True)

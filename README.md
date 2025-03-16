@@ -35,7 +35,6 @@ kill [PID]
 ```
 conda env list
 source activate bdq
-
 ```
 
 ## 快速使用
@@ -44,37 +43,78 @@ source activate bdq
 cd BDQ_PrivacyAR/action-recognition-pytorch-entropy
 
 # 分布式训练环境(默认SBU数据集的配置)
-python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling
+python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --without_t_stride
 # 固定BDQ 训练动作识别网络
-python train_target.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling
+python train_target.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --without_t_stride
 # 固定BDQ 训练隐私识别网络
-python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling
+python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --without_t_stride
 ## 测试动作识别
-python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type target  --gpu 0 -b 1
+python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type target  --gpu 0 -b 1 --without_t_stride
 ## 测试隐私识别
-python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type budget  --gpu 0 -b 1
+python test.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --model_type budget  --gpu 0 -b 1 --without_t_stride
 
 # KTH数据集
-python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1
+python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1 --without_t_stride --augmentor_ver v2
 # 固定BDQ 训练动作识别网络
-python train_target.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1
+python train_target.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1 --without_t_stride --augmentor_ver v2
 # 固定BDQ 训练隐私识别网络
-python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1
+python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1 --without_t_stride --augmentor_ver v2
 ## 测试动作识别
 python test.py --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
 ## 测试隐私识别
 python test.py --datadir /data/chenxinyu/data/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 1
 
 # IPN数据集
-python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8
+python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8 --without_t_stride
 # 固定BDQ 训练动作识别网络
-python train_target.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8
+python train_target.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8 --without_t_stride
 # 固定BDQ 训练隐私识别网络
-python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8
+python train_budget.py --multiprocessing-distributed --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8 --without_t_stride
 ## 测试动作识别
 python test.py --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
 ## 测试隐私识别
 python test.py --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 32 --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 1
+
+```
+
+
+## 远程服务器版本
+
+```
+cd BDQ_PrivacyAR/action-recognition-pytorch-entropy
+
+# 分布式训练环境(默认SBU数据集的配置)
+python train.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride
+# 固定BDQ 训练动作识别网络
+python train_target.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride
+# 固定BDQ 训练隐私识别网络
+python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride
+## 测试动作识别
+python test.py --datadir /root/autodl-tmp/SBU_splits --dense_sampling --model_type target  --gpu 0 -b 1 --without_t_stride
+## 测试隐私识别
+python test.py --datadir /root/autodl-tmp/SBU_splits --dense_sampling --model_type budget  --gpu 0 -b 1 --without_t_stride
+
+# KTH数据集
+python train.py --multiprocessing-distributed --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1 --without_t_stride
+# 固定BDQ 训练动作识别网络
+python train_target.py --multiprocessing-distributed --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1 --without_t_stride
+# 固定BDQ 训练隐私识别网络
+python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 1 --without_t_stride
+## 测试动作识别
+python test.py --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
+## 测试隐私识别
+python test.py --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 1
+
+# IPN数据集
+python train.py --multiprocessing-distributed --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 20 --dense_sampling --weight 8 --without_t_stride
+# 固定BDQ 训练动作识别网络
+python train_target.py --multiprocessing-distributed --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 20 --dense_sampling --weight 8 --without_t_stride
+# 固定BDQ 训练隐私识别网络
+python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 20 --dense_sampling --weight 8 --without_t_stride
+## 测试动作识别
+python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 20 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
+## 测试隐私识别
+python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 20 --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 1
 
 ```
 

@@ -275,7 +275,7 @@ def main_worker(gpu, ngpus_per_node, args):
     if not os.path.isdir(save_dest):
         os.mkdir(save_dest)
 
-
+    
     #----------------- START OF Adv TRAINING------------------#
 
     train_logger = Logger(save_dest+'/adv/'+'adv_train'+'.log',['epoch','prec1_T', 'prec1_B'])
@@ -342,110 +342,9 @@ def main_worker(gpu, ngpus_per_node, args):
                 # torch.save(save_dict, save_dest+'/adv/'+ 'model_budget_e'+ str(epoch+1) +'.ckpt')
 
         #----------------- END OF Adv TRAINING------------------#
+    
 
-
-'''
-    #----------------- START OF TARGET MODEL TRAINING------------------#
-
-    train_logger = Logger(save_dest+f'/target/'+'model_target_train'+'.log',['epoch','prec1_T', 'prec5_T'])
-    val_logger = Logger(save_dest+f'/target/'+'model_target_val'+'.log',['epoch','prec1_T', 'prec5_T'])
-
-    params = model_target.parameters()
-    optimizer = torch.optim.SGD(params, args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
-    scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max= total_epochs, eta_min=1e-7, verbose=True)
-
-    for epoch in range(args.start_epoch, total_epochs):
-        
-        trainT_top1, trainT_top5, _, _, train_losses= train1(train_loader, model_degrad, model_target, model_budget, optimizer, train_criterion, train_entropy_criterion,  epoch + 1, gpu_id= gpu, rank=args.rank, step='target')
-        if args.rank == 0:
-            train_logger.log({'epoch': epoch,'prec1_T': trainT_top1.item(), 'prec5_T': trainT_top5.item()})
-        
-        if args.distributed:
-            dist.barrier()
-
-        valT_top1, valT_top5,  _, _, val_losses = validate1(val_loader, model_degrad, model_target, model_budget, val_criterion, step='target', gpu_id= gpu)
-
-        if args.rank == 0:
-            val_logger.log({'epoch': epoch,'prec1_T': valT_top1.item(), 'prec5_T': valT_top5.item()})
-
-        scheduler.step()
-
-        if args.distributed:
-            dist.barrier()
-
-        print('Train: [{:03d}/{:03d}]\tLoss: {:4.4f}\tTopT@1: {:.4f}\tTopT@5: {:.4f}\t'.format(
-                    epoch + 1, total_epochs, train_losses, trainT_top1, trainT_top5), flush=True)
-        print('Val  : [{:03d}/{:03d}]\tLoss: {:4.4f}\tTopT@1: {:.4f}\tTopT@5: {:.4f}\t'.format(
-                    epoch + 1, total_epochs, val_losses, valT_top1,valT_top5),flush=True)
-
-        best_top1 = valT_top1
-
-        if args.rank == 0:
-            if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-                save_dict = model_target.module.state_dict()  # 提取内部模型
-            else:
-                save_dict = model_target.state_dict()
-
-            torch.save(save_dict, save_dest+'/target/'+ 'model_target'+'.ckpt')        
-        
-        
-        #----------------- END OF TARGET MODEL TRAINING------------------#
-        
-
-
-        #----------------- START OF BUDGET MODEL TRAINING------------------#
-        
-    train_logger = Logger(save_dest+'/budget/'+'model_budget_train'+'.log',['epoch','prec1_B', 'prec5_B'])
-    val_logger = Logger(save_dest+'/budget/'+'model_budget_val'+'.log',['epoch','prec1_B', 'prec5_B'])
-
-    params = model_budget.parameters()
-    optimizer = torch.optim.SGD(params, args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
-    scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max= total_epochs, eta_min=1e-7, verbose=True)
-
-    for epoch in range(args.start_epoch, total_epochs):
-        _, _, trainB_top1, trainB_top5, train_losses = train1(train_loader, model_degrad, model_target, model_budget, optimizer, train_criterion, train_entropy_criterion,  epoch + 1, gpu_id= gpu, rank=args.rank, step='budget')
-        if args.rank == 0:
-            train_logger.log({'epoch': epoch,'prec1_B': trainB_top1.item(), 'prec5_B': trainB_top5.item()})
-        
-        if args.distributed:
-            dist.barrier()
-
-        _, _,  valB_top1, valB_top5, val_losses = validate1(val_loader, model_degrad, model_target, model_budget,val_criterion, step='budget', gpu_id= gpu)
-
-        if args.rank == 0:
-            val_logger.log({'epoch': epoch,'prec1_B': valB_top1.item(), 'prec5_B': valB_top5.item()})
-
-        scheduler.step()
-
-        if args.distributed:
-            dist.barrier()
-
-        print('Train: [{:03d}/{:03d}]\tLoss: {:4.4f}\tTopB@1: {:.4f}\tTopB@5: {:.4f}\t'.format(
-                    epoch + 1, total_epochs, train_losses, trainB_top1, trainB_top5), flush=True)
-        
-        print('Val  : [{:03d}/{:03d}]\tLoss: {:4.4f}\tTopB@1: {:.4f}\tTopB@5: {:.4f}\t'.format(
-                    epoch + 1, total_epochs, val_losses, valB_top1, valB_top5),flush=True)
-
-        best_top1 = valB_top1
-        if args.rank == 0:
-        # 正确保存方式（剥离 DDP 包装）
-            if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-                save_dict = model_budget.module.state_dict()  # 提取内部模型
-            else:
-                save_dict = model_budget.state_dict()
-            torch.save(save_dict, save_dest+'/budget/'+ 'model_budget'+'.ckpt')
-
-        #----------------- END OF BUDGET MODEL TRAINING------------------#
-
-'''
-
-
-
-
-
-'''
-
-
+    '''
         #----------------- START OF target MODEL TRAINING------------------#
     train_logger = Logger(save_dest+'/alone/'+'model_target_train'+'.log',['epoch','prec1_T', 'prec5_T'])
     val_logger = Logger(save_dest+'/alone/'+'model_target_val'+'.log',['epoch','prec1_T', 'prec5_T'])
@@ -483,19 +382,19 @@ def main_worker(gpu, ngpus_per_node, args):
 
         best_top1 = valT_top1
 
-        save_dict = {'net': model_target,
-                        'epoch': epoch,
-                        'state_dict': model_target.state_dict(),
-                        'acc': best_top1,
-                        'optimizer': optimizer.state_dict(),
-                        'scheduler': scheduler.state_dict()
-                    }
-        torch.save(save_dict, save_dest+'/alone/'+ 'model_target'+'.ckpt')    
+        if args.rank == 0:
+            if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+                save_dict = model_target.module.state_dict()  # 提取内部模型
+            else:
+                save_dict = model_target.state_dict()
+
+            torch.save(save_dict, save_dest+'/alone/'+ 'model_target'+'.ckpt')        
+
 
 
         #----------------- END OF target MODEL TRAINING------------------#
 
-
+    
         #----------------- START OF budget MODEL TRAINING------------------#
 
     train_logger = Logger(save_dest+'/alone/'+'model_budget_train'+'.log',['epoch','prec1_B', 'prec5_B'])
@@ -532,17 +431,13 @@ def main_worker(gpu, ngpus_per_node, args):
 
         best_top1 = valB_top1
         
-        save_dict = {'net': model_budget,
-                        'epoch': epoch,
-                        'state_dict': model_budget.state_dict(),
-                        'acc': best_top1,
-                        'optimizer': optimizer.state_dict(),
-                        'scheduler': scheduler.state_dict()
-                    }
-
-        torch.save(save_dict, save_dest+'/alone/'+ 'model_budget'+'.ckpt')
-        #----------------- END OF budget MODEL TRAINING------------------#
-
+        if args.rank == 0:
+        # 正确保存方式（剥离 DDP 包装）
+            if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+                save_dict = model_budget.module.state_dict()  # 提取内部模型
+            else:
+                save_dict = model_budget.state_dict()
+            torch.save(save_dict, save_dest+'/budget/'+ 'model_budget'+'.ckpt')
 '''
 if __name__ == '__main__':
     main()

@@ -21,7 +21,7 @@ def i3d(num_classes_target, num_classes_budget, dropout, without_t_stride, pooli
     # print(f"num_classes: {num_classes}")
     model_degrad =  resnet_degrad()
     # model_utility = I3Du()
-    model_utility = i3d_resnet(num_classes = num_classes_target, dropout = dropout)
+    model_utility = i3d_resnet(num_classes = num_classes_target, dropout = dropout, without_t_stride = without_t_stride)
     model_budget = I3Db(num_classes = num_classes_budget)
 
 

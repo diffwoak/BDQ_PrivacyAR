@@ -10,7 +10,7 @@ def arg_parser():
                         choices=list(MODEL_TABLE.keys()))
     parser.add_argument('-d', '--depth', default=18, type=int, metavar='N',
                         help='depth of resnet (default: 18)', choices=[18, 34, 50, 101, 152]) #暂无用
-    parser.add_argument('--dropout', default=0.2, type=float,
+    parser.add_argument('--dropout', default=0.5, type=float,
                         help='dropout ratio before the final layer')  #暂无用
     parser.add_argument('--groups', default=16, type=int, help='number of frames')
     parser.add_argument('--frames_per_group', default=1, type=int,
