@@ -212,7 +212,9 @@ def main_worker(gpu, ngpus_per_node, args):
             os.makedirs(log_folder)
 
     # BDQ编码器
-    checkpoint_degrad = torch.load(f'/root/project/BDQ_PrivacyAR/action-recognition-pytorch-entropy/results/{args.dataset}/adv/model_degrad.ckpt', map_location="cpu")
+    # checkpoint_degrad = torch.load(f'/root/project/BDQ_PrivacyAR/action-recognition-pytorch-entropy/results/{args.dataset}/adv/model_degrad.ckpt', map_location="cpu")
+    checkpoint_degrad = torch.load(f'results/{args.dataset}/adv/model_degrad.ckpt', map_location="cpu")
+    
     model_degrad.load_state_dict(checkpoint_degrad)
     # model_degrad.load_state_dict(checkpoint_degrad['state_dict'])
         # 单卡加载
