@@ -112,65 +112,26 @@ class GaussianSmoothing(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, sig_scale=5, quantize_bits=4, time_steps = [1,2,3],quantize=True, avg=False,):
+    def __init__(self, sig_scale=5, quantize_bits=4, quantize=True, avg=False,):
         super().__init__()
         self.gauss = GaussianSmoothing(3,5,3)
-        # 差分模块参数
-        self.time_steps = time_steps  # 新增：多时间步长参数，如[1,2,3]
-        self.alpha = nn.Parameter(torch.ones(len(time_steps)) / len(time_steps))
-        # 量化模块参数
-        self.sig_scale = sig_scale
         self.bits = quantize_bits
+        self.sig_scale = sig_scale
         self.bias = nn.Parameter(torch.from_numpy(np.linspace(0, 2 ** self.bits - 1, 2 ** self.bits, dtype='float32')[:-1] + 0.5))
         self.levels = np.linspace(0, 2 ** self.bits - 1, 2 ** self.bits, dtype='float32')[:-1]
         # 存储中间输出的变量
         self.blur_output = None
         self.diff_output = None
-
-
-    def compute_multi_scale_diff(self, x):
-        """
-        计算多尺度帧间差异
-        输入：x [B,C,T,H,W]
-        输出：加权后的差异帧 [B,C,T',H,W]
-        """
-        B, C, T, H, W = x.shape
-        all_diffs = []
-        
-        # 遍历每个时间步长k
-        for k in self.time_steps:
-            # 获取t-k帧（超出范围用零填充）
-            x_shift = torch.zeros_like(x)
-            if k < T:
-                x_shift[:, :, k:] = x[:, :, :-k]
-            
-            # 计算绝对差异 |B_t - B_{t-k}|
-            diff = torch.abs(x - x_shift)
-            all_diffs.append(diff)
-        
-        # 拼接不同尺度的差异 [K, B,C,T,H,W]
-        all_diffs = torch.stack(all_diffs, dim=0)  # [K,B,C,T,H,W]
-        
-        # 计算注意力权重（softmax归一化）
-        weights = torch.softmax(self.alpha, dim=0)  # [K]
-        
-        # 加权融合多尺度差异
-        weighted_diff = torch.einsum('k,kbcthw->bcthw', weights, all_diffs)
-        
-        # 裁剪有效时间范围（去除前max(time_steps)帧）
-        max_k = max(self.time_steps)
-        return weighted_diff[:, :, max_k:, :, :]  # [B,C,T-max_k,H,W]
-
+ 
     # BDQ编码器
     def forward(self, x):
         # 高斯模糊
         x = self.gauss(x)      
-        self.blur_output = x[:,:,len(self.time_steps):,:,:]
+        self.blur_output = x[:,:,1:,:,:]
         # 差分
-        # x_roll = torch.roll(x, 1, dims= 2)
-        # x = x-x_roll
-        # x = x[:,:,1:,:,:]
-        x = self.compute_multi_scale_diff(x)  # 输出 [B,C,T',H,W]
+        x_roll = torch.roll(x, 1, dims= 2)
+        x = x-x_roll
+        x = x[:,:,1:,:,:]
         self.diff_output = x
         # 量化
         qmin = 0.
@@ -192,6 +153,9 @@ class ResNet(nn.Module):
         return y, self.bias
 
 def resnet_degrad():
+    """
+    Constructs a ResNet-10 model.
+    """
     model = ResNet()
     return model
 

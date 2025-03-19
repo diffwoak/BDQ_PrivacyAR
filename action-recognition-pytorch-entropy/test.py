@@ -107,7 +107,8 @@ def main():
 
     # args.resume = 'results/KTH/adv/"
     # print(args.resume)
-
+    args.dataset = args.dataset+'_origin'
+    
     print("=> using pre-trained model '{}'".format(arch_name))
     checkpoint = torch.load(f'results/{args.dataset}/adv/model_degrad.ckpt', map_location='cpu')
     # model_degrad.load_state_dict(checkpoint)
