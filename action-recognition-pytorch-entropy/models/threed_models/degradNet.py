@@ -119,15 +119,20 @@ class ResNet(nn.Module):
         self.sig_scale = sig_scale
         self.bias = nn.Parameter(torch.from_numpy(np.linspace(0, 2 ** self.bits - 1, 2 ** self.bits, dtype='float32')[:-1] + 0.5))
         self.levels = np.linspace(0, 2 ** self.bits - 1, 2 ** self.bits, dtype='float32')[:-1]
+        # 存储中间输出的变量
+        self.blur_output = None
+        self.diff_output = None
  
     # BDQ编码器
     def forward(self, x):
         # 高斯模糊
-        x = self.gauss(x)        
+        x = self.gauss(x)      
+        self.blur_output = x[:,:,1:,:,:]
         # 差分
         x_roll = torch.roll(x, 1, dims= 2)
         x = x-x_roll
         x = x[:,:,1:,:,:]
+        self.diff_output = x
         # 量化
         qmin = 0.
         qmax = 2. ** self.bits - 1.

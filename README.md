@@ -121,11 +121,9 @@ python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 20 -
 ## 可视化
 
 ```
-python visual.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --gpu 1
+python visual.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --gpu 1 -b 4
 
-python visual.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --gpu 1
-
-python visual.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --gpu 1
+python visual.py --datadir /root/autodl-tmp/SBU_splits --dense_sampling --gpu 1 -b 4
 ```
 
 

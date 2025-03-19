@@ -108,6 +108,8 @@ def visual_a_batch(data, model):
         B, C, T_data, H, W = data.shape
         _, _, T_result, _, _ = model(data)[0].shape  # 假设 result 的维度是 [B, C, T_result, H, W]
         result, bias = model(data)
+        blur_frames = model.blur_output    # 模糊后的帧 [B,C,T-1,H,W]
+        diff_frames = model.diff_output    # 差分帧 [B,C,T-1,H,W]
         
         toPIL = transforms.ToPILImage()
 
@@ -123,15 +125,23 @@ def visual_a_batch(data, model):
 
             # --- 收集 result 的15张图像（假设 result 的时间步 T_result=15）---
             result_images = []
+            blur_images = []
+            diff_images = []
             for t in range(T_result):  # 时间步 0~14（共15张）
+                image_b = blur_frames[batch_idx, :, t, :, :]
+                image_d = diff_frames[batch_idx, :, t, :, :]
                 image = result[batch_idx, :, t, :, :]
+                pil_image_b = toPIL(image_b)
+                pil_image_d = toPIL(image_d)
                 pil_image = toPIL(image)
+                blur_images.append(pil_image_b)
+                diff_images.append(pil_image_d)
                 result_images.append(pil_image)
 
             # --- 合并图像 ---
             # 计算合并后的图像尺寸：宽度为 15*W，高度为 2*H
             total_width = 15 * W
-            total_height = 2 * H
+            total_height = 4 * H
 
             # 创建空白画布
             combined = Image.new('RGB', (total_width, total_height))
@@ -141,11 +151,23 @@ def visual_a_batch(data, model):
             for img in data_images:
                 combined.paste(img, (x_offset, 0))
                 x_offset += img.width
+            
+            # 粘贴 blur_frames 的图像到第二行
+            x_offset = 0
+            for img in blur_images:
+                combined.paste(img, (x_offset, H))
+                x_offset += img.width
+            
+            # 粘贴 diff_frames 的图像到第三行
+            x_offset = 0
+            for img in diff_images:
+                combined.paste(img, (x_offset, 2*H))
+                x_offset += img.width
 
-            # 粘贴 result 的图像到第二行
+            # 粘贴 result 的图像到第四行
             x_offset = 0
             for img in result_images:
-                combined.paste(img, (x_offset, H))
+                combined.paste(img, (x_offset, 3*H))
                 x_offset += img.width
 
             # 保存合并后的图像

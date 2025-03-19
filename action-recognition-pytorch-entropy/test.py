@@ -20,7 +20,7 @@ import pickle
 import torch.distributed as dist
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="Argument 'interpolation' of type int.*")
-
+from visual import visual_a_batch
 
 def eval_a_batch(data, model_degrad, model,model_type, num_clips=1, num_crops=1, threed_data=False):
     with torch.no_grad():
@@ -182,6 +182,7 @@ def main():
     # switch to evaluate mode
 
     total_batches = len(data_loader)
+    count = 0
     with torch.no_grad(), tqdm(total=total_batches) as t_bar:
         end = time.time()
         # for i, (video, label) in enumerate(data_loader):
@@ -193,6 +194,11 @@ def main():
             label = label.cuda(non_blocking=True)
             # measure accuracy
             prec1, prec5 = accuracy(output, label, topk=(1, 5))
+            if prec1[0].item() == 100:
+                count += 1
+                if count == 9:
+                    visual_a_batch(video,model_degrad)
+                    return
             top1.update(prec1[0], video.size(0))
             top5.update(prec5[0], video.size(0))
             output = output.data.cpu().numpy().copy()
