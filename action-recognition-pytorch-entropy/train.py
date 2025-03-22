@@ -282,8 +282,23 @@ def main_worker(gpu, ngpus_per_node, args):
     val_logger = Logger(save_dest+'/adv/'+'adv_val'+'.log',['epoch','prec1_T', 'prec1_B'])
 
     params_t = list(model_target.parameters())+list(model_degrad.parameters())
+    # special_param = [list(model_degrad.parameters())[0]]
+    # other_degrad_params = list(model_degrad.parameters())[1:]
+    # params_group = [
+    #     # 组1: model_target全部参数 + degrad网络其他参数（使用默认学习率）
+    #     {
+    #         "params": list(model_target.parameters()) + other_degrad_params,
+    #         "lr": args.lr  # 原始学习率
+    #     },
+    #     # 组2: 需要特殊处理的参数（使用更大学习率）
+    #     {
+    #         "params": special_param,
+    #         "lr": args.lr * 1  # 学习率增大10倍
+    #     }
+    # ]
     params_b = model_budget.parameters()
     optimizer_t = torch.optim.SGD(params_t, args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
+    # optimizer_t = torch.optim.SGD(params_group, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
     optimizer_b = torch.optim.SGD(params_b, args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
     scheduler_t = lr_scheduler.CosineAnnealingLR(optimizer_t, T_max= total_epochs, eta_min=1e-7, verbose=True)
     scheduler_b = lr_scheduler.CosineAnnealingLR(optimizer_b, T_max= total_epochs, eta_min=1e-7, verbose=True)

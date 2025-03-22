@@ -112,12 +112,14 @@ class GaussianSmoothing(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, sig_scale=5, quantize_bits=4, time_steps = [1,2,3],quantize=True, avg=False,):
+    def __init__(self, sig_scale=5, quantize_bits=3, time_steps = [1,2],quantize=True, avg=False,):
         super().__init__()
         self.gauss = GaussianSmoothing(3,5,3)
         # 差分模块参数
         self.time_steps = time_steps  # 新增：多时间步长参数，如[1,2,3]
-        self.alpha = nn.Parameter(torch.ones(len(time_steps)) / len(time_steps))
+        weights = torch.exp(torch.linspace(2, 0, len(time_steps)))  # 指数衰减
+        self.alpha = nn.Parameter(weights/weights.sum())
+        # self.alpha = nn.Parameter(torch.ones(len(time_steps)) / len(time_steps))
         # 量化模块参数
         self.sig_scale = sig_scale
         self.bits = quantize_bits

@@ -10,3 +10,5 @@ python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/
 python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 36 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
 ## 测试隐私识别
 python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 36 --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 1
+
+

@@ -107,13 +107,13 @@ def main():
 
     # args.resume = 'results/KTH/adv/"
     # print(args.resume)
-    args.dataset = args.dataset+'_origin'
+    # args.dataset = args.dataset+'_origin'
     
     print("=> using pre-trained model '{}'".format(arch_name))
     checkpoint = torch.load(f'results/{args.dataset}/adv/model_degrad.ckpt', map_location='cpu')
     # model_degrad.load_state_dict(checkpoint)
     state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
-    model_degrad.load_state_dict(state_dict)
+    model_degrad.load_state_dict(state_dict,strict = False)
     del checkpoint
     if args.model_type == 'target':
         checkpoint = torch.load(f'results/{args.dataset}/target/model_target.ckpt', map_location='cpu')
@@ -195,11 +195,11 @@ def main():
             label = label.cuda(non_blocking=True)
             # measure accuracy
             prec1, prec5 = accuracy(output, label, topk=(1, 5))
-            if prec1[0].item() == 100:
-                count += 1
-                if count == 9:
-                    visual_a_batch(video,model_degrad)
-                    return
+            # if prec1[0].item() == 0:
+            #     count += 1
+            #     if count == 2:
+            #         visual_a_batch(video,model_degrad)
+            #         return
             top1.update(prec1[0], video.size(0))
             top5.update(prec5[0], video.size(0))
             output = output.data.cpu().numpy().copy()

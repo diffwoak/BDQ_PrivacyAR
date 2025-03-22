@@ -123,7 +123,7 @@ python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 20 -
 ```
 python visual.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --gpu 1 -b 4
 
-python visual.py --datadir /root/autodl-tmp/SBU_splits --dense_sampling --gpu 1 -b 4
+python visual.py --datadir /root/autodl-tmp/SBU_splits --dense_sampling --gpu 0 -b 4
 ```
 
 
