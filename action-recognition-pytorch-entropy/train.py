@@ -285,12 +285,10 @@ def main_worker(gpu, ngpus_per_node, args):
     # special_param = [list(model_degrad.parameters())[0]]
     # other_degrad_params = list(model_degrad.parameters())[1:]
     # params_group = [
-    #     # 组1: model_target全部参数 + degrad网络其他参数（使用默认学习率）
     #     {
     #         "params": list(model_target.parameters()) + other_degrad_params,
     #         "lr": args.lr  # 原始学习率
     #     },
-    #     # 组2: 需要特殊处理的参数（使用更大学习率）
     #     {
     #         "params": special_param,
     #         "lr": args.lr * 1  # 学习率增大10倍
@@ -303,6 +301,8 @@ def main_worker(gpu, ngpus_per_node, args):
     scheduler_t = lr_scheduler.CosineAnnealingLR(optimizer_t, T_max= total_epochs, eta_min=1e-7, verbose=True)
     scheduler_b = lr_scheduler.CosineAnnealingLR(optimizer_b, T_max= total_epochs, eta_min=1e-7, verbose=True)
 
+    best_val_top1 = float(80.0)
+    best_diff = -float('inf')
     for epoch in range(args.start_epoch, total_epochs):
         
         trainT_top1, trainT_top5, trainB_top1, trainB_top5, train_losses = train(train_loader, model_degrad, model_target, model_budget, optimizer_t, optimizer_b, 
@@ -332,29 +332,28 @@ def main_worker(gpu, ngpus_per_node, args):
 
         # 保存模型参数
         
-        best_top1 = valT_top1
+        if args.rank == 0:
+            # 保存最佳模型（当验证指标提升时）
+            if  valT_top1 > 80.0 and valB_top1 < 40:
+                best_val_top1 = valT_top1.item()
+                best_diff = valT_top1.item()-valB_top1.item() if best_diff < valT_top1.item()-valB_top1.item() else best_diff
+                # 提取模型参数（兼容DDP模式）
+                model_dict = model_degrad.module.state_dict() if isinstance(model_degrad, torch.nn.parallel.DistributedDataParallel) else model_degrad.state_dict()
+                # 基础保存名称
+                save_name = f"model_degrad_epoch{epoch}_topT{valT_top1.item():.2f}_topB{valB_top1.item():.2f}_D{(valT_top1.item()-valB_top1.item()):.2f}.ckpt"
+                print(f"New best model saved: {save_name}")
+                # 始终保存当前 epoch 的模型
+                torch.save(model_dict, f"{save_dest}/adv/{save_name}")
+                if best_diff == valT_top1.item()-valB_top1.item():
+                    torch.save(model_dict, save_dest+'/adv/'+ 'model_degrad' + '.ckpt')
+                
         # if args.rank == 0:
-        if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-            save_dict = model_degrad.module.state_dict()  # 提取内部模型
-        else:
-            save_dict = model_degrad.state_dict()
-        torch.save(save_dict, save_dest+'/adv/'+ 'model_degrad' + '.ckpt')
-                # save_dict = {'net': model_target,
-                #                 'epoch': epoch,
-                #                 'state_dict': model_target.state_dict(),
-                #                 'acc': best_top1,
-                #                 'optimizer': optimizer_t.state_dict(),
-                #                 'scheduler': scheduler_t.state_dict()
-                #             }
-                # torch.save(save_dict, save_dest+'/adv/'+ 'model_target_e'+ str(epoch+1) + '.ckpt')
-                # save_dict = {'net': model_budget,
-                #                 'epoch': epoch,
-                #                 'state_dict': model_budget.state_dict(),
-                #                 'acc': best_top1,
-                #                 'optimizer': optimizer_b.state_dict(),
-                #                 'scheduler': scheduler_b.state_dict()
-                #             }
-                # torch.save(save_dict, save_dest+'/adv/'+ 'model_budget_e'+ str(epoch+1) +'.ckpt')
+            # if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+            #     save_dict = model_degrad.module.state_dict()  # 提取内部模型
+            # else:
+            #     save_dict = model_degrad.state_dict()
+            # torch.save(save_dict, save_dest+'/adv/'+ 'model_degrad' + '.ckpt')
+
 
         #----------------- END OF Adv TRAINING------------------#
     

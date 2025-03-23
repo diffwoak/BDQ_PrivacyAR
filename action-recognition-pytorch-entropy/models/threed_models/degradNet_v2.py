@@ -56,61 +56,6 @@ class GaussianSmoothing(nn.Module):
         return input
 
 
-
-# class GaussianSmoothing(nn.Module):
-#     def __init__(self, channels, kernel_size, sigma_init, dim=3):
-#         super(GaussianSmoothing, self).__init__()
-#         self.channels = channels
-#         self.dim = dim
-
-#         # 处理 kernel_size 格式
-#         if isinstance(kernel_size, numbers.Number):
-#             kernel_size = [kernel_size] * dim  # 扩展到所有维度
-#         self.kernel_size = kernel_size
-
-#         # 初始化可学习的 sigma（每个空间维度独立）
-#         if isinstance(sigma_init, numbers.Number):
-#             sigma_init = [sigma_init] * (dim - 1)  # 假设第一个维度不需要模糊（如通道维度）
-#         self.sigma = nn.Parameter(torch.tensor(sigma_init, dtype=torch.float32))
-
-#     def forward(self, x):
-#         # 动态生成高斯核
-#         kernel = 1
-#         meshgrids = torch.meshgrid(
-#             [
-#                 torch.arange(size, dtype=torch.float32, device=x.device)
-#                 for size in self.kernel_size
-#             ],
-#             indexing='ij'
-#         )
-
-#         # 遍历每个维度生成高斯分布
-#         for i, (size, mgrid) in enumerate(zip(self.kernel_size, meshgrids)):
-#             if i == 0:
-#                 # 跳过第一个维度（通常为通道维度，kernel_size=1）
-#                 continue  
-#             std = self.sigma[i-1] if i <= len(self.sigma) else 1.0  # 取对应的 sigma
-#             mean = (size - 1) / 2
-#             kernel *= (1 / (std * math.sqrt(2 * math.pi))) * \
-#                       torch.exp(-((mgrid - mean) / (std + 1e-6)) ** 2 / 2)
-
-#         # 归一化并调整形状
-#         kernel = kernel / torch.sum(kernel)
-#         kernel = kernel.view(1, 1, *kernel.size())
-#         kernel = kernel.repeat(self.channels, *[1] * (kernel.dim() - 1))
-
-#         # 计算 padding
-#         padding = [(k - 1) // 2 for k in self.kernel_size]
-
-#         # 根据维度选择卷积函数
-#         if self.dim == 3:
-#             return F.conv3d(x, kernel, groups=self.channels, padding=padding)
-#         elif self.dim == 2:
-#             return F.conv2d(x, kernel, groups=self.channels, padding=padding)
-#         else:
-#             raise ValueError("Unsupported dimension: {}".format(self.dim))
-
-
 class ResNet(nn.Module):
     def __init__(self, sig_scale=5, quantize_bits=4, quantize=True, avg=False,):
         super().__init__()
@@ -132,7 +77,12 @@ class ResNet(nn.Module):
         x_roll = torch.roll(x, 1, dims= 2)
         x = x-x_roll
         x = x[:,:,1:,:,:]
-        self.diff_output = x
+        x = torch.abs(x)
+        # 差分
+        x_roll = torch.roll(x, 1, dims= 2)
+        x = x-x_roll
+        x = x[:,:,1:,:,:]
+        self.diff_output = torch.abs(x)
         # 量化
         qmin = 0.
         qmax = 2. ** self.bits - 1.

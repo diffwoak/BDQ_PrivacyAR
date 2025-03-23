@@ -137,6 +137,9 @@ def main_worker(gpu, ngpus_per_node, args):
     model_target = model_target.cuda(gpu)
     model_budget = model_budget.cuda(gpu)
 
+    checkpoint_degrad = torch.load(f'results/{args.dataset}/adv/model_degrad.ckpt', map_location="cpu")
+    model_degrad.load_state_dict(checkpoint_degrad)
+
     if args.distributed:
         torch.cuda.set_device(gpu)
         args.batch_size = int(args.batch_size / args.world_size)
@@ -196,11 +199,9 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # BDQ编码器
     # checkpoint_degrad = torch.load(f'/root/project/BDQ_PrivacyAR/action-recognition-pytorch-entropy/results/{args.dataset}/adv/model_degrad.ckpt', map_location="cpu")
-    checkpoint_degrad = torch.load(f'results/{args.dataset}/adv/model_degrad.ckpt', map_location="cpu")
     
-    model_degrad.load_state_dict(checkpoint_degrad)
         # 单卡加载
-    # state_dict = {k.replace("module.", ""): v for k, v in checkpoint_degrad['model'].items()}
+    # state_dict = {k.replace("module.", ""): v for k, v in checkpoint_degrad.items()}
     # model_degrad.load_state_dict(state_dict)
     del checkpoint_degrad
 
@@ -237,7 +238,7 @@ def main_worker(gpu, ngpus_per_node, args):
     params = model_target.parameters()
     optimizer = torch.optim.SGD(params, args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
     scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max= total_epochs, eta_min=1e-7, verbose=True)
-
+    best_val_top1 = float(80.0)
     for epoch in range(args.start_epoch, total_epochs):
         
         trainT_top1, trainT_top5, _, _, train_losses= train1(train_loader, model_degrad, model_target, model_budget, optimizer, train_criterion, train_entropy_criterion,  epoch + 1, gpu_id= gpu, rank=args.rank, step='target')
@@ -262,15 +263,26 @@ def main_worker(gpu, ngpus_per_node, args):
         print('Val  : [{:03d}/{:03d}]\tLoss: {:4.4f}\tTopT@1: {:.4f}\tTopT@5: {:.4f}\t'.format(
                     epoch + 1, total_epochs, val_losses, valT_top1,valT_top5),flush=True)
 
-        best_top1 = valT_top1
-
         if args.rank == 0:
-            if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-                save_dict = model_target.module.state_dict()  # 提取内部模型
-            else:
-                save_dict = model_target.state_dict()
+            # 保存最佳模型（当验证指标提升时）
+            if valT_top1 > best_val_top1:
+                best_val_top1 = valT_top1.item()
+                # 提取模型参数（兼容DDP模式）
+                model_dict = model_target.module.state_dict() if isinstance(model_target, torch.nn.parallel.DistributedDataParallel) else model_target.state_dict()
+                # 基础保存名称
+                save_name = f"model_target_epoch{epoch}_topT{valT_top1.item():.2f}.ckpt"
+                print(f"New best model saved: {save_name}")
+                # 始终保存当前 epoch 的模型
+                torch.save(model_dict, f"{save_dest}/target/{save_name}")
+                torch.save(model_dict, save_dest+'/target/'+ 'model_target' + '.ckpt')
 
-            torch.save(save_dict, save_dest+'/target/'+ 'model_target'+'.ckpt')        
+        # if args.rank == 0:
+        #     if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+        #         save_dict = model_target.module.state_dict()  # 提取内部模型
+        #     else:
+        #         save_dict = model_target.state_dict()
+
+        #     torch.save(save_dict, save_dest+'/target/'+ 'model_target'+'.ckpt')        
         
         #----------------- END OF TARGET MODEL TRAINING------------------#
         
