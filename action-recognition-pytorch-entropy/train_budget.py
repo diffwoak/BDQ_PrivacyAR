@@ -41,7 +41,19 @@ from models.threed_models.utilityNet import I3Du
 from models.threed_models.budgetNet import I3Db
 from models.threed_models.degradNet import resnet_degrad
 from models.threed_models.i3d_resnet import i3d_resnet
+import random
+import numpy as np
 
+def set_seed(seed = 3407):
+    torch.manual_seed(seed)
+    # 如果你使用 CUDA，还需要设置 CUDA 的随机种子
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # 如果使用多 GPU
+    # 设置 Python 的随机种子
+    random.seed(seed)
+
+    # 设置 NumPy 的随机种子
+    np.random.seed(seed)
 
 # 日志类工具
 class Logger(object):
@@ -90,6 +102,7 @@ def main():
         os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, args.gpu))
     args.distributed = args.world_size > 1 or args.multiprocessing_distributed
     ngpus_per_node = torch.cuda.device_count() 
+    set_seed()
     if args.multiprocessing_distributed:
         args.world_size = ngpus_per_node * args.world_size 
         mp.spawn(main_worker, nprocs=ngpus_per_node, args=(ngpus_per_node, args))
@@ -109,7 +122,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if gpu is not None:
         print("Use GPU: {} for training".format(gpu))
-
+    args.dist_url = 'tcp://127.0.0.1:23457'
     if args.distributed:
         if args.dist_url == "env://" and args.rank == -1:
             args.rank = int(os.environ["RANK"])
@@ -256,7 +269,7 @@ def main_worker(gpu, ngpus_per_node, args):
     params = model_budget.parameters()
     optimizer = torch.optim.SGD(params, args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
     scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max= total_epochs, eta_min=1e-7, verbose=True)
-    best_val_top1 = float(30)
+    best_val_top1 = float(40)
     for epoch in range(args.start_epoch, total_epochs):
         _, _, trainB_top1, trainB_top5, train_losses = train1(train_loader, model_degrad, model_target, model_budget, optimizer, train_criterion, train_entropy_criterion,  epoch + 1, gpu_id= gpu, rank=args.rank, step='budget')
         if args.rank == 0:
@@ -282,17 +295,17 @@ def main_worker(gpu, ngpus_per_node, args):
                     epoch + 1, total_epochs, val_losses, valB_top1, valB_top5),flush=True)
 
         if args.rank == 0:
+            model_dict = model_budget.module.state_dict() if isinstance(model_budget, torch.nn.parallel.DistributedDataParallel) else model_budget.state_dict()
+            torch.save(model_dict, save_dest+'/budget/'+ 'model_budget' + '.ckpt')
             # 保存最佳模型（当验证指标提升时）
             if valB_top1 > best_val_top1:
                 best_val_top1 = valB_top1.item()
                 # 提取模型参数（兼容DDP模式）
-                model_dict = model_budget.module.state_dict() if isinstance(model_budget, torch.nn.parallel.DistributedDataParallel) else model_budget.state_dict()
                 # 基础保存名称
                 save_name = f"model_budget_epoch{epoch}_topT{valB_top1.item():.2f}.ckpt"
                 print(f"New best model saved: {save_name}")
                 # 始终保存当前 epoch 的模型
                 torch.save(model_dict, f"{save_dest}/budget/{save_name}")
-                torch.save(model_dict, save_dest+'/budget/'+ 'model_budget' + '.ckpt')
         # if args.rank == 0:
         # # 正确保存方式（剥离 DDP 包装）
         #     if isinstance(model, torch.nn.parallel.DistributedDataParallel):

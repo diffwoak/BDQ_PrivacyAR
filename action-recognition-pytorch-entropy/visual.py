@@ -117,7 +117,7 @@ def visual_a_batch(data, model):
         for batch_idx in range(B):
             # --- 收集 data 的后15张图像（假设 data 的时间步 T_data=16）---
             data_images = []
-            for t in range(2, 16):  # 时间步 1~15（共15张）
+            for t in range(1, 16):  # 时间步 1~15（共15张）
                 # 提取单个图像：形状 [C, H, W]
                 image = data[batch_idx, :, t, :, :]
                 # 转换为 PIL 图像
@@ -141,7 +141,7 @@ def visual_a_batch(data, model):
 
             # --- 合并图像 ---
             # 计算合并后的图像尺寸：宽度为 15*W，高度为 2*H
-            total_width = (16-2) * W
+            total_width = (16-1) * W
             total_height = 4 * H
 
             # 创建空白画布

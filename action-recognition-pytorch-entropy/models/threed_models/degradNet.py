@@ -12,7 +12,7 @@ from PIL import Image, ImageOps
 import imageio
 import matplotlib.pyplot as plt
 from matplotlib.colors import NoNorm
-
+from torchvision.transforms.functional import gaussian_blur
 
 ######################################################################################
 
@@ -56,61 +56,117 @@ class GaussianSmoothing(nn.Module):
         return input
 
 
+class GhostSuppressor(nn.Module):
+    def __init__(self, alpha=0.5, kernel_size=3):
+        super().__init__()
+        self.alpha = alpha
+        self.kernel_size = kernel_size
+        
+        # 预定义形态学操作核
+        self.register_buffer('morph_kernel', 
+            torch.ones(1, 1, kernel_size, kernel_size))
 
-# class GaussianSmoothing(nn.Module):
-#     def __init__(self, channels, kernel_size, sigma_init, dim=3):
-#         super(GaussianSmoothing, self).__init__()
-#         self.channels = channels
-#         self.dim = dim
+    def adaptive_threshold(self, x):
+        """
+        输入: x [B,C,T,H,W]
+        输出: 阈值化后的张量 [B,C,T,H,W]
+        """
+        B, C, T, H, W = x.shape
+        
+        # 合并B和T维度以便并行处理
+        ori_x = x.permute(0,2,1,3,4).contiguous().reshape(B*T, C, H, W)
+        # 复制原始x
+        x_merged = torch.abs(ori_x)
+        # 计算局部均值 (3x3窗口)
+        local_mean = F.avg_pool2d(x_merged, kernel_size=5, stride=1, padding=2)
+        
+        # 计算全局标准差 (按帧独立计算)
+        global_std = torch.std(x_merged.view(B*T, C, -1), dim=2)      # [B*T,C]
+        global_std = global_std.view(B*T, C, 1, 1)                   # [B*T,C,1,1]
+        
+        # 动态阈值
+        threshold = local_mean + self.alpha * global_std
+        # print(local_mean.shape)
+        # # print(global_std)
+        # print(x_merged[11].max())
+        # print(local_mean[11].max())
+        # print(global_std[11].max())
 
-#         # 处理 kernel_size 格式
-#         if isinstance(kernel_size, numbers.Number):
-#             kernel_size = [kernel_size] * dim  # 扩展到所有维度
-#         self.kernel_size = kernel_size
+        # 二值化并恢复原始维度
+        mask = (x_merged > threshold).float()
+        return (mask * ori_x).reshape(B, T, C, H, W).permute(0,2,1,3,4)
 
-#         # 初始化可学习的 sigma（每个空间维度独立）
-#         if isinstance(sigma_init, numbers.Number):
-#             sigma_init = [sigma_init] * (dim - 1)  # 假设第一个维度不需要模糊（如通道维度）
-#         self.sigma = nn.Parameter(torch.tensor(sigma_init, dtype=torch.float32))
+    def morphological_closing(self, x):
+        """
+        输入: x [B,C,T,H,W]
+        输出: 闭运算结果 [B,C,T,H,W]
+        """
+        B, C, T, H, W = x.shape
+        
+        # 合并维度: [B*C*T,1,H,W]
+        x_merged = x.reshape(-1, 1, H, W)
+        
+        # 膨胀操作
+        dilated = F.max_pool2d(
+            x_merged, 
+            kernel_size=self.kernel_size,
+            stride=1,
+            padding=self.kernel_size//2
+        )
+        
+        # 腐蚀操作 (通过负片最大池化实现)
+        eroded = -F.max_pool2d(
+            -dilated, 
+            kernel_size=self.kernel_size,
+            stride=1,
+            padding=self.kernel_size//2
+        )
+        
+        # 恢复原始维度
+        return eroded.reshape(B, C, T, H, W)
 
-#     def forward(self, x):
-#         # 动态生成高斯核
-#         kernel = 1
-#         meshgrids = torch.meshgrid(
-#             [
-#                 torch.arange(size, dtype=torch.float32, device=x.device)
-#                 for size in self.kernel_size
-#             ],
-#             indexing='ij'
-#         )
+    def forward(self, diff_frames):
+        """
+        输入: diff_frames [B,C,T,H,W]
+        输出: 残影抑制后的差分帧 [B,C,T,H,W]
+        """
+        B, C, T, H, W = diff_frames.shape
+        # 步骤1: 自适应阈值
+        thresholded = self.adaptive_threshold(diff_frames)
+        
+        # 步骤2: 形态学闭运算
+        # closed = self.morphological_closing(thresholded)
+        
+        # 步骤3: 高斯平滑 (可选)
+        # smoothed = gaussian_blur(
+        #     thresholded.contiguous().reshape(-1, 1, H, W), 
+        #     kernel_size=3, 
+        #     sigma=0.5
+        # ).reshape(B, C, T, H, W)
 
-#         # 遍历每个维度生成高斯分布
-#         for i, (size, mgrid) in enumerate(zip(self.kernel_size, meshgrids)):
-#             if i == 0:
-#                 # 跳过第一个维度（通常为通道维度，kernel_size=1）
-#                 continue  
-#             std = self.sigma[i-1] if i <= len(self.sigma) else 1.0  # 取对应的 sigma
-#             mean = (size - 1) / 2
-#             kernel *= (1 / (std * math.sqrt(2 * math.pi))) * \
-#                       torch.exp(-((mgrid - mean) / (std + 1e-6)) ** 2 / 2)
+        return thresholded
 
-#         # 归一化并调整形状
-#         kernel = kernel / torch.sum(kernel)
-#         kernel = kernel.view(1, 1, *kernel.size())
-#         kernel = kernel.repeat(self.channels, *[1] * (kernel.dim() - 1))
-
-#         # 计算 padding
-#         padding = [(k - 1) // 2 for k in self.kernel_size]
-
-#         # 根据维度选择卷积函数
-#         if self.dim == 3:
-#             return F.conv3d(x, kernel, groups=self.channels, padding=padding)
-#         elif self.dim == 2:
-#             return F.conv2d(x, kernel, groups=self.channels, padding=padding)
-#         else:
-#             raise ValueError("Unsupported dimension: {}".format(self.dim))
-
-
+def rgb_to_grayscale(input_tensor):
+    """
+    将RGB视频张量转换为灰度图像
+    输入: [batch, 3, frames, H, W] (取值范围建议[0,1]或[0,255])
+    输出: [batch, 1, frames, H, W]
+    """
+    if input_tensor.size(1) != 3:
+        raise ValueError("输入张量的通道数必须为3 (RGB)")
+    
+    # 定义RGB转灰度的权重 (依据ITU-R BT.601标准)
+    weights = torch.tensor([0.2989, 0.5870, 0.1140], 
+                          device=input_tensor.device,
+                          dtype=input_tensor.dtype)  # [3]
+    
+    # 扩展维度以匹配输入张量: [3] → [1, 3, 1, 1, 1]
+    weights = weights.view(1, 3, 1, 1, 1)
+    
+    # 加权求和: 按通道维度求和
+    gray = (input_tensor * weights).sum(dim=1, keepdim=True)  # [B,1,T,H,W]
+    
+    return gray
 class ResNet(nn.Module):
     def __init__(self, sig_scale=5, quantize_bits=4, quantize=True, avg=False,):
         super().__init__()
@@ -129,10 +185,13 @@ class ResNet(nn.Module):
         x = self.gauss(x)      
         self.blur_output = x[:,:,1:,:,:]
         # 差分
+        # x = rgb_to_grayscale(x)
         x_roll = torch.roll(x, 1, dims= 2)
         x = x-x_roll
         x = x[:,:,1:,:,:]
-        self.diff_output = x
+        ghost_suppressor = GhostSuppressor(alpha=0, kernel_size=3)
+        x = ghost_suppressor(x)
+        self.diff_output = torch.abs(x)
         # 量化
         qmin = 0.
         qmax = 2. ** self.bits - 1.

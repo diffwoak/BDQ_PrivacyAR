@@ -22,6 +22,19 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="Argument 'interpolation' of type int.*")
 from visual import visual_a_batch
 
+import random
+import numpy as np
+
+def set_seed(seed = 3407):
+    torch.manual_seed(seed)
+    # 如果你使用 CUDA，还需要设置 CUDA 的随机种子
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # 如果使用多 GPU
+    # 设置 Python 的随机种子
+    random.seed(seed)
+
+    # 设置 NumPy 的随机种子
+    np.random.seed(seed)
 def eval_a_batch(data, model_degrad, model,model_type, num_clips=1, num_crops=1, threed_data=False):
     with torch.no_grad():
         data, bias = model_degrad(data)
@@ -58,7 +71,7 @@ def main():
     parser = arg_parser()
     args = parser.parse_args()
     cudnn.benchmark = True
-
+    set_seed()
     dist.init_process_group(
         backend='nccl',  # 或 'gloo'（如果无 GPU）
         init_method='tcp://localhost:12345',  # 任意可用端口
@@ -104,10 +117,6 @@ def main():
     model_degrad.eval()
     model = model.cuda()
     model.eval()
-
-    # args.resume = 'results/KTH/adv/"
-    # print(args.resume)
-    # args.dataset = args.dataset+'_origin'
     
     print("=> using pre-trained model '{}'".format(arch_name))
     checkpoint = torch.load(f'results/{args.dataset}/adv/model_degrad.ckpt', map_location='cpu')
@@ -116,13 +125,15 @@ def main():
     model_degrad.load_state_dict(state_dict,strict = False)
     del checkpoint
     if args.model_type == 'target':
-        checkpoint = torch.load(f'results/{args.dataset}/target/model_target.ckpt', map_location='cpu')
+        checkpoint = torch.load(f'results/{args.dataset}/target/model_target_epoch18_topT85.14.ckpt', map_location='cpu')
+        # checkpoint = torch.load(f'results/{args.dataset}/alone/model_target.ckpt', map_location='cpu')
         # model.load_state_dict(checkpoint['state_dict'])
         state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
         model.load_state_dict(state_dict)
         del checkpoint
     else:
         checkpoint = torch.load(f'results/{args.dataset}/budget/model_budget.ckpt', map_location='cpu')
+        # checkpoint = torch.load(f'results/{args.dataset}/alone/model_budget.ckpt', map_location='cpu')
         # model.load_state_dict(checkpoint['state_dict'])
         state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
         model.load_state_dict(state_dict)
