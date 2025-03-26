@@ -119,20 +119,22 @@ def main():
     model.eval()
     
     print("=> using pre-trained model '{}'".format(arch_name))
-    checkpoint = torch.load(f'results/{args.dataset}/adv/model_degrad.ckpt', map_location='cpu')
+    checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/4_model_degrad_epoch48_topT86.49_topB26.67_D59.82.ckpt', map_location='cpu')
+    # checkpoint = torch.load(f'results/{args.dataset}_v0/adv/model_degrad_epoch31_topT82.43_topB22.25_D60.18.ckpt', map_location='cpu')
+
     # model_degrad.load_state_dict(checkpoint)
     state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
     model_degrad.load_state_dict(state_dict,strict = False)
     del checkpoint
     if args.model_type == 'target':
-        checkpoint = torch.load(f'results/{args.dataset}/target/model_target_epoch18_topT85.14.ckpt', map_location='cpu')
+        checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/target/10_model_target_epoch25_topT82.43.ckpt', map_location='cpu')
         # checkpoint = torch.load(f'results/{args.dataset}/alone/model_target.ckpt', map_location='cpu')
         # model.load_state_dict(checkpoint['state_dict'])
         state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
-        model.load_state_dict(state_dict)
+        model.load_state_dict(state_dict) 
         del checkpoint
     else:
-        checkpoint = torch.load(f'results/{args.dataset}/budget/model_budget.ckpt', map_location='cpu')
+        checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/budget/4_model_budget_epoch33_topT38.47.ckpt', map_location='cpu')
         # checkpoint = torch.load(f'results/{args.dataset}/alone/model_budget.ckpt', map_location='cpu')
         # model.load_state_dict(checkpoint['state_dict'])
         state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}

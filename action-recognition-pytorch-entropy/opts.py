@@ -125,6 +125,8 @@ def arg_parser():
                         help='node rank for distributed training')
     parser.add_argument('--dist-url', default='tcp://127.0.0.1:23456', type=str,
                         help='url used to set up distributed training')
+    parser.add_argument('--bdq_v',default='v0',type=str,choices=['v0','v3'],
+                        help='choose BDQ model to train or test')
     parser.add_argument('--dist-backend', default='nccl', type=str,
                         help='distributed backend')
     parser.add_argument('--multiprocessing-distributed', action='store_true',

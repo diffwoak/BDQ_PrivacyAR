@@ -1,3 +1,7 @@
+[user]
+	email = cxy13192381118@163.com
+	name = diffwoak
+
 # 忽略所有 __pycache__ 目录
 __pycache__/
 
@@ -6,6 +10,7 @@ __pycache__/
 
 # 忽略所有 .ckpt 文件
 *.ckpt
+
 # 可选：同时忽略其他常见模型格式（如 .pth, .h5）
 *.pth
 *.h5

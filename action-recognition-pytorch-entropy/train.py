@@ -37,10 +37,10 @@ from  torch.nn.modules.loss import _Loss
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="Argument 'interpolation' of type int.*")
 
-from models.threed_models.utilityNet import I3Du
-from models.threed_models.budgetNet import I3Db
-from models.threed_models.degradNet import resnet_degrad
-from models.threed_models.i3d_resnet import i3d_resnet
+# from models.threed_models.utilityNet import I3Du
+# from models.threed_models.budgetNet import I3Db
+# from models.threed_models.degradNet import resnet_degrad
+# from models.threed_models.i3d_resnet import i3d_resnet
 
 import random
 import numpy as np
@@ -283,7 +283,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     total_epochs= args.epochs
 
-    save_dest = f'results/{args.dataset}'
+    save_dest = f'results/{args.dataset}_{args.bdq_v}'
     if not os.path.isdir(save_dest):
         os.mkdir(save_dest)
 
@@ -354,7 +354,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 # 提取模型参数（兼容DDP模式）
                 model_dict = model_degrad.module.state_dict() if isinstance(model_degrad, torch.nn.parallel.DistributedDataParallel) else model_degrad.state_dict()
                 # 基础保存名称
-                save_name = f"model_degrad_epoch{epoch}_topT{valT_top1.item():.2f}_topB{valB_top1.item():.2f}_D{(valT_top1.item()-valB_top1.item()):.2f}.ckpt"
+                save_name = f"{args.weight}_model_degrad_epoch{epoch}_topT{valT_top1.item():.2f}_topB{valB_top1.item():.2f}_D{(valT_top1.item()-valB_top1.item()):.2f}.ckpt"
                 print(f"New best model saved: {save_name}")
                 # 始终保存当前 epoch 的模型
                 torch.save(model_dict, f"{save_dest}/adv/{save_name}")

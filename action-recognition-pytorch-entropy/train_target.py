@@ -37,10 +37,10 @@ from  torch.nn.modules.loss import _Loss
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="Argument 'interpolation' of type int.*")
 
-from models.threed_models.utilityNet import I3Du
-from models.threed_models.budgetNet import I3Db
-from models.threed_models.degradNet import resnet_degrad
-from models.threed_models.i3d_resnet import i3d_resnet
+# from models.threed_models.utilityNet import I3Du
+# from models.threed_models.budgetNet import I3Db
+# from models.threed_models.degradNet import resnet_degrad
+# from models.threed_models.i3d_resnet import i3d_resnet
 import random
 import numpy as np
 
@@ -150,7 +150,10 @@ def main_worker(gpu, ngpus_per_node, args):
     model_target = model_target.cuda(gpu)
     model_budget = model_budget.cuda(gpu)
 
-    checkpoint_degrad = torch.load(f'results/{args.dataset}/adv/model_degrad.ckpt', map_location="cpu")
+    if args.resume== '':
+        args.resume = 'model_degrad'
+    # checkpoint_degrad = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/{args.resume}.ckpt', map_location="cpu")
+    checkpoint_degrad = torch.load(f'results/SBU_v3/adv/model_degrad_new.ckpt', map_location="cpu")
     model_degrad.load_state_dict(checkpoint_degrad)
 
     if args.distributed:
@@ -239,7 +242,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     total_epochs= args.epochs
 
-    save_dest = f'results/{args.dataset}'
+    save_dest = f'results/{args.dataset}_{args.bdq_v}'
     if not os.path.isdir(save_dest):
         os.mkdir(save_dest)
 
@@ -283,7 +286,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 best_val_top1 = valT_top1.item()
                 # 提取模型参数（兼容DDP模式）
                 # 基础保存名称
-                save_name = f"model_target_epoch{epoch}_topT{valT_top1.item():.2f}.ckpt"
+                save_name = f"{args.weight}_model_target_epoch{epoch}_topT{valT_top1.item():.2f}.ckpt"
                 print(f"New best model saved: {save_name}")
                 # 始终保存当前 epoch 的模型
                 torch.save(model_dict, f"{save_dest}/target/{save_name}")

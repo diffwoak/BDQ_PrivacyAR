@@ -115,64 +115,65 @@ def visual_a_batch(data, model):
         toPIL = transforms.ToPILImage()
 
         for batch_idx in range(B):
-            # --- 收集 data 的后15张图像（假设 data 的时间步 T_data=16）---
-            data_images = []
-            for t in range(1, 16):  # 时间步 1~15（共15张）
-                # 提取单个图像：形状 [C, H, W]
-                image = data[batch_idx, :, t, :, :]
-                # 转换为 PIL 图像
-                pil_image = toPIL(image)
-                data_images.append(pil_image)
+            if batch_idx == 2:
+                # --- 收集 data 的后15张图像（假设 data 的时间步 T_data=16）---
+                data_images = []
+                for t in range(1, 16):  # 时间步 1~15（共15张）
+                    # 提取单个图像：形状 [C, H, W]
+                    image = data[batch_idx, :, t, :, :]
+                    # 转换为 PIL 图像
+                    pil_image = toPIL(image)
+                    data_images.append(pil_image)
 
-            # --- 收集 result 的15张图像（假设 result 的时间步 T_result=15）---
-            result_images = []
-            blur_images = []
-            diff_images = []
-            for t in range(T_result):  # 时间步 0~14（共15张）
-                image_b = blur_frames[batch_idx, :, t, :, :]
-                image_d = diff_frames[batch_idx, :, t, :, :]
-                image = result[batch_idx, :, t, :, :]
-                pil_image_b = toPIL(image_b)
-                pil_image_d = toPIL(image_d)
-                pil_image = toPIL(image)
-                blur_images.append(pil_image_b)
-                diff_images.append(pil_image_d)
-                result_images.append(pil_image)
+                # --- 收集 result 的15张图像（假设 result 的时间步 T_result=15）---
+                result_images = []
+                blur_images = []
+                diff_images = []
+                for t in range(T_result):  # 时间步 0~14（共15张）
+                    image_b = blur_frames[batch_idx, :, t, :, :]
+                    image_d = diff_frames[batch_idx, :, t, :, :]
+                    image = result[batch_idx, :, t, :, :]
+                    pil_image_b = toPIL(image_b)
+                    pil_image_d = toPIL(image_d)
+                    pil_image = toPIL(image)
+                    blur_images.append(pil_image_b)
+                    diff_images.append(pil_image_d)
+                    result_images.append(pil_image)
 
-            # --- 合并图像 ---
-            # 计算合并后的图像尺寸：宽度为 15*W，高度为 2*H
-            total_width = (16-1) * W
-            total_height = 4 * H
+                # --- 合并图像 ---
+                # 计算合并后的图像尺寸：宽度为 15*W，高度为 2*H
+                total_width = (16-1) * W
+                total_height = 4 * H
 
-            # 创建空白画布
-            combined = Image.new('RGB', (total_width, total_height))
+                # 创建空白画布
+                combined = Image.new('RGB', (total_width, total_height))
 
-            # 粘贴 data 的图像到第一行
-            x_offset = 0
-            for img in data_images:
-                combined.paste(img, (x_offset, 0))
-                x_offset += img.width
-            
-            # 粘贴 blur_frames 的图像到第二行
-            x_offset = 0
-            for img in blur_images:
-                combined.paste(img, (x_offset, H))
-                x_offset += img.width
-            
-            # 粘贴 diff_frames 的图像到第三行
-            x_offset = 0
-            for img in diff_images:
-                combined.paste(img, (x_offset, 2*H))
-                x_offset += img.width
+                # 粘贴 data 的图像到第一行
+                x_offset = 0
+                for img in data_images:
+                    combined.paste(img, (x_offset, 0))
+                    x_offset += img.width
+                
+                # 粘贴 blur_frames 的图像到第二行
+                x_offset = 0
+                for img in blur_images:
+                    combined.paste(img, (x_offset, H))
+                    x_offset += img.width
+                
+                # 粘贴 diff_frames 的图像到第三行
+                x_offset = 0
+                for img in diff_images:
+                    combined.paste(img, (x_offset, 2*H))
+                    x_offset += img.width
 
-            # 粘贴 result 的图像到第四行
-            x_offset = 0
-            for img in result_images:
-                combined.paste(img, (x_offset, 3*H))
-                x_offset += img.width
+                # 粘贴 result 的图像到第四行
+                x_offset = 0
+                for img in result_images:
+                    combined.paste(img, (x_offset, 3*H))
+                    x_offset += img.width
 
-            # 保存合并后的图像
-            combined.save(os.path.join(output_dir, f"combined_batch{batch_idx}.png"))
+                # 保存合并后的图像
+                combined.save(os.path.join(output_dir, f"combined_batch{batch_idx}_{args.bdq_v}.png"))
 
 def main():
     global args
@@ -208,7 +209,9 @@ def main():
     # state_dict = torch.load(anonymizer_path)
     # model_degrad.load_state_dict(state_dict['state_dict'])
     # print(torch.load(anonymizer_path)['state_dict'])
-    checkpoint = torch.load(f'results/{args.dataset}/adv/model_degrad.ckpt', map_location='cpu')
+    # checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/model_degrad_epoch31_topT82.43_topB22.25_D60.18.ckpt', map_location='cpu')
+    checkpoint = torch.load(f'results/{args.dataset}_v0/adv/model_degrad_epoch31_topT82.43_topB22.25_D60.18.ckpt', map_location='cpu')
+
     state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
     model_degrad.load_state_dict(state_dict)
     del checkpoint
@@ -223,7 +226,6 @@ def main():
     # model.to(torch.device('cuda:0'))
     # model = torch.nn.DataParallel(model).cuda()
     model_degrad.eval()
-
     # augmentor
     if args.disable_scaleup:
         scale_size = args.input_size
