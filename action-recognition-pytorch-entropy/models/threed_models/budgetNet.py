@@ -339,8 +339,9 @@ def I3Db(pretrained: bool = True, progress: bool =True ,num_classes: int = 13, *
     return _resnet("resnet50", Bottleneck, [3, 4, 6, 3], pretrained, progress, num_classes, **kwargs)
 
 
+
 '''
-def I3Db(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
+def I3Db(pretrained: bool = True, progress: bool = True, num_classes: int = 13, **kwargs: Any) -> ResNet:
     r"""ResNet-101 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
@@ -348,10 +349,10 @@ def I3Db(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResN
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet("resnet101", Bottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs)
+    return _resnet("resnet101", Bottleneck, [3, 4, 23, 3], pretrained, progress, num_classes, **kwargs)
 '''
-
-def resnet152(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
+'''
+def I3Db(pretrained: bool = True, progress: bool = True, num_classes: int = 13,  **kwargs: Any) -> ResNet:
     r"""ResNet-152 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
@@ -359,8 +360,8 @@ def resnet152(pretrained: bool = False, progress: bool = True, **kwargs: Any) ->
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet("resnet152", Bottleneck, [3, 8, 36, 3], pretrained, progress, **kwargs)
-
+    return _resnet("resnet152", Bottleneck, [3, 8, 36, 3], pretrained, progress,num_classes, **kwargs)
+'''
 '''
 def I3Db(pretrained: bool = True, progress: bool = True, **kwargs: Any) -> ResNet:
     r"""ResNeXt-50 32x4d model from

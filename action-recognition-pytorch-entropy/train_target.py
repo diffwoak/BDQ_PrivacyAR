@@ -120,7 +120,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if gpu is not None:
         print("Use GPU: {} for training".format(gpu))
-    args.dist_url = 'tcp://127.0.0.1:23458'
+    # args.dist_url = 'tcp://127.0.0.1:23458'
     if args.distributed:
         if args.dist_url == "env://" and args.rank == -1:
             args.rank = int(os.environ["RANK"])
@@ -151,9 +151,9 @@ def main_worker(gpu, ngpus_per_node, args):
     model_budget = model_budget.cuda(gpu)
 
     if args.resume== '':
-        args.resume = 'model_degrad'
-    # checkpoint_degrad = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/{args.resume}.ckpt', map_location="cpu")
-    checkpoint_degrad = torch.load(f'results/SBU_v3/adv/model_degrad_new.ckpt', map_location="cpu")
+        args.resume = 'model_degrad_new'
+    checkpoint_degrad = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/{args.resume}.ckpt', map_location="cpu")
+    # checkpoint_degrad = torch.load(f'results/SBU_v3/adv/model_degrad_new.ckpt', map_location="cpu")
     model_degrad.load_state_dict(checkpoint_degrad)
 
     if args.distributed:
@@ -278,7 +278,9 @@ def main_worker(gpu, ngpus_per_node, args):
                     epoch + 1, total_epochs, train_losses, trainT_top1, trainT_top5), flush=True)
         print('Val  : [{:03d}/{:03d}]\tLoss: {:4.4f}\tTopT@1: {:.4f}\tTopT@5: {:.4f}\t'.format(
                     epoch + 1, total_epochs, val_losses, valT_top1,valT_top5),flush=True)
-
+        abla = ''
+        for i in args.abla:
+            abla = abla + i
         if args.rank == 0:
             model_dict = model_target.module.state_dict() if isinstance(model_target, torch.nn.parallel.DistributedDataParallel) else model_target.state_dict()
             # 保存最佳模型（当验证指标提升时）
@@ -286,11 +288,11 @@ def main_worker(gpu, ngpus_per_node, args):
                 best_val_top1 = valT_top1.item()
                 # 提取模型参数（兼容DDP模式）
                 # 基础保存名称
-                save_name = f"{args.weight}_model_target_epoch{epoch}_topT{valT_top1.item():.2f}.ckpt"
+                save_name = f"d152_model_target_epoch{epoch}_topT{valT_top1.item():.2f}.ckpt"
                 print(f"New best model saved: {save_name}")
                 # 始终保存当前 epoch 的模型
                 torch.save(model_dict, f"{save_dest}/target/{save_name}")
-            torch.save(model_dict, save_dest+'/target/'+ 'model_target' + '.ckpt')
+            torch.save(model_dict, save_dest+'/target/'+ f'd152_model_target' + '.ckpt')
 
         # if args.rank == 0:
         #     if isinstance(model, torch.nn.parallel.DistributedDataParallel):

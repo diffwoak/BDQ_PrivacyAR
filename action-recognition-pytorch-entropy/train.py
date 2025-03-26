@@ -294,21 +294,8 @@ def main_worker(gpu, ngpus_per_node, args):
     val_logger = Logger(save_dest+'/adv/'+'adv_val'+'.log',['epoch','prec1_T', 'prec1_B'])
 
     params_t = list(model_target.parameters())+list(model_degrad.parameters())
-    # special_param = [list(model_degrad.parameters())[0]]
-    # other_degrad_params = list(model_degrad.parameters())[1:]
-    # params_group = [
-    #     {
-    #         "params": list(model_target.parameters()) + other_degrad_params,
-    #         "lr": args.lr  # 原始学习率
-    #     },
-    #     {
-    #         "params": special_param,
-    #         "lr": args.lr * 1  # 学习率增大10倍
-    #     }
-    # ]
     params_b = model_budget.parameters()
     optimizer_t = torch.optim.SGD(params_t, args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
-    # optimizer_t = torch.optim.SGD(params_group, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
     optimizer_b = torch.optim.SGD(params_b, args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
     scheduler_t = lr_scheduler.CosineAnnealingLR(optimizer_t, T_max= total_epochs, eta_min=1e-7, verbose=True)
     scheduler_b = lr_scheduler.CosineAnnealingLR(optimizer_b, T_max= total_epochs, eta_min=1e-7, verbose=True)
@@ -370,7 +357,7 @@ def main_worker(gpu, ngpus_per_node, args):
         #----------------- END OF Adv TRAINING------------------#
 
 
-    '''
+'''   
         #----------------- START OF target MODEL TRAINING------------------#
     train_logger = Logger(save_dest+'/alone/'+'model_target_train'+'.log',['epoch','prec1_T', 'prec5_T'])
     val_logger = Logger(save_dest+'/alone/'+'model_target_val'+'.log',['epoch','prec1_T', 'prec5_T'])
@@ -411,24 +398,16 @@ def main_worker(gpu, ngpus_per_node, args):
             # 保存最佳模型（当验证指标提升时）
             if valT_top1 > best_val_top1:
                 best_val_top1 = valT_top1.item()
-                save_name = f"model_target_epoch{epoch}_topT{valT_top1.item():.2f}.ckpt"
+                save_name = f"d50_model_target_epoch{epoch}_topT{valT_top1.item():.2f}.ckpt"
                 print(f"New best model saved: {save_name}")
                 torch.save(model_dict, f"{save_dest}/alone/{save_name}")
-            torch.save(model_dict, save_dest+'/alone/'+ 'model_target' + '.ckpt')
-
-        # if args.rank == 0:
-        #     if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-        #         save_dict = model_target.module.state_dict()  # 提取内部模型
-        #     else:
-        #         save_dict = model_target.state_dict()
-
-        #     torch.save(save_dict, save_dest+'/alone/'+ 'model_target'+'.ckpt')        
+            torch.save(model_dict, save_dest+'/alone/'+ 'd50_model_target' + '.ckpt')
 
 
 
         #----------------- END OF target MODEL TRAINING------------------#
 
- 
+
         #----------------- START OF budget MODEL TRAINING------------------#
 
     train_logger = Logger(save_dest+'/alone/'+'model_budget_train'+'.log',['epoch','prec1_B', 'prec5_B'])
@@ -466,24 +445,17 @@ def main_worker(gpu, ngpus_per_node, args):
 
         if args.rank == 0:
             model_dict = model_budget.module.state_dict() if isinstance(model_budget, torch.nn.parallel.DistributedDataParallel) else model_budget.state_dict()
-            torch.save(model_dict, save_dest+'/alone/'+ 'model_budget' + '.ckpt')
+            torch.save(model_dict, save_dest+'/alone/'+ 'd50_model_budget' + '.ckpt')
             # 保存最佳模型（当验证指标提升时）
             if valB_top1 > best_val_top1:
                 best_val_top1 = valB_top1.item()
                 # 提取模型参数（兼容DDP模式）
                 # 基础保存名称
-                save_name = f"model_budget_epoch{epoch}_topT{valB_top1.item():.2f}.ckpt"
+                save_name = f"d50_model_budget_epoch{epoch}_topT{valB_top1.item():.2f}.ckpt"
                 print(f"New best model saved: {save_name}")
                 # 始终保存当前 epoch 的模型
                 torch.save(model_dict, f"{save_dest}/alone/{save_name}")
-        
-        # if args.rank == 0:
-        # # 正确保存方式（剥离 DDP 包装）
-        #     if isinstance(model, torch.nn.parallel.DistributedDataParallel):
-        #         save_dict = model_budget.module.state_dict()  # 提取内部模型
-        #     else:
-        #         save_dict = model_budget.state_dict()
-        #     torch.save(save_dict, save_dest+'/budget/'+ 'model_budget'+'.ckpt')
-    ''' 
+'''
+
 if __name__ == '__main__':
     main()

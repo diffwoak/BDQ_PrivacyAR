@@ -168,7 +168,7 @@ def main_worker(gpu, ngpus_per_node, args):
     model_budget = model_budget.cuda(gpu)
 
     if args.resume== '':
-        args.resume = 'model_degrad'
+        args.resume = 'model_degrad_new'
     checkpoint_degrad = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/{args.resume}.ckpt', map_location="cpu")
     model_degrad.load_state_dict(checkpoint_degrad)
 
@@ -229,13 +229,6 @@ def main_worker(gpu, ngpus_per_node, args):
         if not os.path.exists(log_folder):
             os.makedirs(log_folder)
 
-    # BDQ编码器
-    # checkpoint_degrad = torch.load(f'/root/project/BDQ_PrivacyAR/action-recognition-pytorch-entropy/results/{args.dataset}/adv/model_degrad.ckpt', map_location="cpu")
-   
-    # model_degrad.load_state_dict(checkpoint_degrad['state_dict'])
-        # 单卡加载
-    # state_dict = {k.replace("module.", ""): v for k, v in checkpoint_degrad['model'].items()}
-    # model_degrad.load_state_dict(state_dict)
     del checkpoint_degrad
 
     train_list = os.path.join(args.datadir, train_list_name)
@@ -295,16 +288,18 @@ def main_worker(gpu, ngpus_per_node, args):
         
         print('Val  : [{:03d}/{:03d}]\tLoss: {:4.4f}\tTopB@1: {:.4f}\tTopB@5: {:.4f}\t'.format(
                     epoch + 1, total_epochs, val_losses, valB_top1, valB_top5),flush=True)
-
+        abla = ''
+        for i in args.abla:
+            abla = abla + i
         if args.rank == 0:
             model_dict = model_budget.module.state_dict() if isinstance(model_budget, torch.nn.parallel.DistributedDataParallel) else model_budget.state_dict()
-            torch.save(model_dict, save_dest+'/budget/'+ f'{args.weight}_model_budget' + '.ckpt')
+            torch.save(model_dict, save_dest+'/budget/'+ f'd152_model_budget' + '.ckpt')
             # 保存最佳模型（当验证指标提升时）
             if valB_top1 > best_val_top1:
                 best_val_top1 = valB_top1.item()
                 # 提取模型参数（兼容DDP模式）
                 # 基础保存名称
-                save_name = f"{args.weight}_model_budget_epoch{epoch}_topT{valB_top1.item():.2f}.ckpt"
+                save_name = f"d152_model_budget_epoch{epoch}_topT{valB_top1.item():.2f}.ckpt"
                 print(f"New best model saved: {save_name}")
                 # 始终保存当前 epoch 的模型
                 torch.save(model_dict, f"{save_dest}/budget/{save_name}")

@@ -127,6 +127,8 @@ def arg_parser():
                         help='url used to set up distributed training')
     parser.add_argument('--bdq_v',default='v0',type=str,choices=['v0','v3'],
                         help='choose BDQ model to train or test')
+    parser.add_argument('--abla', type=str, nargs='+', default=['B','D','S','Q'],
+                        help='Specify a list of BDQ modules to use (e.g., --abla B D).')
     parser.add_argument('--dist-backend', default='nccl', type=str,
                         help='distributed backend')
     parser.add_argument('--multiprocessing-distributed', action='store_true',

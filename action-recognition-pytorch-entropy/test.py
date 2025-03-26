@@ -111,7 +111,7 @@ def main():
     mean = [110.63666788 / norm_value, 103.16065604 / norm_value, 96.29023126 / norm_value]
     std = [38.7568578 / norm_value, 37.88248729 / norm_value, 40.02898126 / norm_value]
 
-    gpu = 0
+    gpu = args.gpu[0]
     torch.cuda.set_device(gpu)
     model_degrad = model_degrad.cuda()
     model_degrad.eval()
@@ -119,23 +119,21 @@ def main():
     model.eval()
     
     print("=> using pre-trained model '{}'".format(arch_name))
-    checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/4_model_degrad_epoch48_topT86.49_topB26.67_D59.82.ckpt', map_location='cpu')
-    # checkpoint = torch.load(f'results/{args.dataset}_v0/adv/model_degrad_epoch31_topT82.43_topB22.25_D60.18.ckpt', map_location='cpu')
+    checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/model_degrad_new.ckpt', map_location='cpu')
 
-    # model_degrad.load_state_dict(checkpoint)
     state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
     model_degrad.load_state_dict(state_dict,strict = False)
     del checkpoint
     if args.model_type == 'target':
-        checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/target/10_model_target_epoch25_topT82.43.ckpt', map_location='cpu')
-        # checkpoint = torch.load(f'results/{args.dataset}/alone/model_target.ckpt', map_location='cpu')
+        checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/target/d152_model_target_epoch25_topT82.43.ckpt', map_location='cpu')
+        # checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/alone/d50_model_target_epoch38_topT91.89.ckpt', map_location='cpu')
         # model.load_state_dict(checkpoint['state_dict'])
         state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
         model.load_state_dict(state_dict) 
         del checkpoint
     else:
-        checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/budget/4_model_budget_epoch33_topT38.47.ckpt', map_location='cpu')
-        # checkpoint = torch.load(f'results/{args.dataset}/alone/model_budget.ckpt', map_location='cpu')
+        checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/budget/d152_model_budget.ckpt', map_location='cpu')
+        # checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/alone/d50_model_budget_epoch26_topT98.99.ckpt', map_location='cpu')
         # model.load_state_dict(checkpoint['state_dict'])
         state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
         model.load_state_dict(state_dict)

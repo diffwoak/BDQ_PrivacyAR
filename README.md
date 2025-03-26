@@ -41,7 +41,7 @@ source activate bdq
 
 ```
 cd BDQ_PrivacyAR/action-recognition-pytorch-entropy
-
+cd /root/project/BDQ_PrivacyAR/action-recognition-pytorch-entropy
 # 分布式训练环境(默认SBU数据集的配置)
 python train.py --multiprocessing-distributed --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --without_t_stride
 # 固定BDQ 训练动作识别网络
@@ -84,46 +84,59 @@ python test.py --datadir /data/chenxinyu/data/IPN_splits --dataset IPN --groups 
 cd BDQ_PrivacyAR/action-recognition-pytorch-entropy
 
 # 分布式训练环境(默认SBU数据集的配置)
-python train.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride --lr 0.003 --weight 6 -b 8
+python train.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride --lr 0.003 --weight 8 -b 8
 # 固定BDQ 训练动作识别网络
-python train_target.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride --lr 0.003 --weight 6 -b 8
+python train_target.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride --lr 0.003 --weight 8 -b 8
 # 固定BDQ 训练隐私识别网络
-python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride --lr 0.003 --weight 6 -b 8
+python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride --lr 0.003 --weight 8 -b 8
 ## 测试动作识别
 python test.py --datadir /root/autodl-tmp/SBU_splits --dense_sampling --model_type target  --gpu 0 -b 8 --without_t_stride
 ## 测试隐私识别
 python test.py --datadir /root/autodl-tmp/SBU_splits --dense_sampling --model_type budget  --gpu 0 -b 8 --without_t_stride
 
 # KTH数据集
-python train.py --multiprocessing-distributed --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 2 --without_t_stride --lr 0.003 -b 8 --epochs 13
+python train.py --multiprocessing-distributed --datadir /root/autodl-tmp/KTH_splits --dataset KTH --without_t_stride --groups 32 --dense_sampling --disable_scaleup --weight 2 --without_t_stride --lr 0.003 -b 8 --epochs 13
 # 固定BDQ 训练动作识别网络
-python train_target.py --multiprocessing-distributed --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 2 --without_t_stride --lr 0.003 -b 8 --epochs 13
+python train_target.py --multiprocessing-distributed --datadir /root/autodl-tmp/KTH_splits --dataset KTH --without_t_stride --groups 32 --dense_sampling --disable_scaleup --weight 2 --without_t_stride --lr 0.003 -b 8 --epochs 13
 # 固定BDQ 训练隐私识别网络
-python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --weight 2 --without_t_stride --lr 0.003 -b 8 --epochs 13
+python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/KTH_splits --dataset KTH --without_t_stride --groups 32 --dense_sampling --disable_scaleup --weight 2 --without_t_stride --lr 0.003 -b 8 --epochs 13
 ## 测试动作识别
-python test.py --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
+python test.py --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --without_t_stride --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 1
 ## 测试隐私识别
-python test.py --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 1
+python test.py --datadir /root/autodl-tmp/KTH_splits --dataset KTH --groups 32 --without_t_stride --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 1
 
 # IPN数据集
-python train.py --multiprocessing-distributed --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 10 --without_t_stride -b 8 --lr 0.003
+python train.py --multiprocessing-distributed --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 20 --without_t_stride -b 8 --lr 0.003
 # 固定BDQ 训练动作识别网络
 python train_target.py --multiprocessing-distributed --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8 --without_t_stride -b 8 --lr 0.003
 # 固定BDQ 训练隐私识别网络
 python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 32 --dense_sampling --weight 8 --without_t_stride -b 8 --lr 0.003
 ## 测试动作识别
-python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 20 --dense_sampling --disable_scaleup --model_type target --gpu 0 -b 8
+python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 32 --dense_sampling --without_t_stride --disable_scaleup --model_type target --gpu 0 -b 8
 ## 测试隐私识别
-python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 20 --dense_sampling --disable_scaleup --model_type budget --gpu 0 -b 8
+python test.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 32 --dense_sampling --without_t_stride --disable_scaleup --model_type budget --gpu 0 -b 8
 
 ```
 
 ## 可视化
 
 ```
-python visual.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --gpu 1 -b 4
+python visual.py --datadir /data/chenxinyu/data/SBU_splits --dense_sampling --without_t_stride --gpu 1 -b 4
 
-python visual.py --datadir /root/autodl-tmp/SBU_splits --dense_sampling --gpu 0 -b 4
+python visual.py --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride --gpu 0 -b 4
+
+python visual.py --datadir /root/autodl-tmp/IPN_splits --dataset IPN --groups 16 --dense_sampling --without_t_stride --gpu 0 -b 4
 ```
 
+# 消融实验
 
+```
+# 固定BDQ 训练动作识别网络
+python train_target.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride --lr 0.003 --weight 8 -b 8 --bdq_v v3 --abla B D S Q
+# 固定BDQ 训练隐私识别网络
+python train_budget.py --multiprocessing-distributed --datadir /root/autodl-tmp/SBU_splits --dense_sampling --without_t_stride --lr 0.003 --weight 8 -b 8 --bdq_v v3 --abla B D S Q
+## 测试动作识别
+python test.py --datadir /root/autodl-tmp/SBU_splits --groups 16 --dense_sampling --disable_scaleup --model_type target --gpu 1 -b 8 --bdq_v v3 --abla B D S Q
+## 测试隐私识别
+python test.py --datadir /root/autodl-tmp/SBU_splits --groups 16 --dense_sampling --disable_scaleup --model_type budget --gpu 1 -b 8 --bdq_v v3 --abla B D S Q
+```

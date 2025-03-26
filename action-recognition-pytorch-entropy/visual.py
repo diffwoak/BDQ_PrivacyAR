@@ -209,8 +209,7 @@ def main():
     # state_dict = torch.load(anonymizer_path)
     # model_degrad.load_state_dict(state_dict['state_dict'])
     # print(torch.load(anonymizer_path)['state_dict'])
-    # checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/model_degrad_epoch31_topT82.43_topB22.25_D60.18.ckpt', map_location='cpu')
-    checkpoint = torch.load(f'results/{args.dataset}_v0/adv/model_degrad_epoch31_topT82.43_topB22.25_D60.18.ckpt', map_location='cpu')
+    checkpoint = torch.load(f'results/{args.dataset}_{args.bdq_v}/adv/model_degrad.ckpt', map_location='cpu')
 
     state_dict = {k.replace("module.", ""): v for k, v in checkpoint.items()}
     model_degrad.load_state_dict(state_dict)

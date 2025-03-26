@@ -168,7 +168,7 @@ def rgb_to_grayscale(input_tensor):
     
     return gray
 class ResNet(nn.Module):
-    def __init__(self, sig_scale=5, quantize_bits=4, quantize=True, avg=False,):
+    def __init__(self, abla,sig_scale=5, quantize_bits=4, quantize=True, avg=False,):
         super().__init__()
         self.gauss = GaussianSmoothing(3,5,3)
         self.bits = quantize_bits
@@ -178,44 +178,53 @@ class ResNet(nn.Module):
         # 存储中间输出的变量
         self.blur_output = None
         self.diff_output = None
+        # 消融实验设置
+        self.abla = abla
  
     # BDQ编码器
     def forward(self, x):
         # 高斯模糊
-        x = self.gauss(x)      
-        self.blur_output = x[:,:,1:,:,:]
+        if 'B' in self.abla:
+            x = self.gauss(x)      
+            self.blur_output = x[:,:,1:,:,:]
         # 差分
-        # x = rgb_to_grayscale(x)
-        x_roll = torch.roll(x, 1, dims= 2)
-        x = x-x_roll
-        x = x[:,:,1:,:,:]
-        ghost_suppressor = GhostSuppressor(alpha=0.1, kernel_size=3)
-        x = ghost_suppressor(x)
-        self.diff_output = torch.abs(x)
+        if 'D' in self.abla:
+            x_roll = torch.roll(x, 1, dims= 2)
+            x = x-x_roll
+            x = x[:,:,1:,:,:]
+            self.diff_output = torch.abs(x)
+        # 残影过滤
+        if 'S' in self.abla:
+            ghost_suppressor = GhostSuppressor(alpha=0.1, kernel_size=3)
+            x = ghost_suppressor(x)
+            self.diff_output = torch.abs(x)
         # 量化
-        qmin = 0.
-        qmax = 2. ** self.bits - 1.
-        min_value = x.min()
-        max_value = x.max()
-        scale_value = (max_value - min_value) / (qmax - qmin)
-        scale_value = max(scale_value, 1e-4)
-        x = ((x - min_value) / ((max_value - min_value) + 1e-4)) * (qmax - qmin)
-        y = torch.zeros(x.shape, device=x.device)
-        self.bias.data = self.bias.data.clamp(0, (2 ** self.bits - 1))
-        self.bias.data = self.bias.data.sort(0).values
+        if 'Q' in self.abla:
+            qmin = 0.
+            qmax = 2. ** self.bits - 1.
+            min_value = x.min()
+            max_value = x.max()
+            scale_value = (max_value - min_value) / (qmax - qmin)
+            scale_value = max(scale_value, 1e-4)
+            x = ((x - min_value) / ((max_value - min_value) + 1e-4)) * (qmax - qmin)
+            y = torch.zeros(x.shape, device=x.device)
+            self.bias.data = self.bias.data.clamp(0, (2 ** self.bits - 1))
+            self.bias.data = self.bias.data.sort(0).values
 
-        for i in range(self.levels.shape[0]):
-            y = y + torch.sigmoid(self.sig_scale * ((x) - self.bias[i]))
+            for i in range(self.levels.shape[0]):
+                y = y + torch.sigmoid(self.sig_scale * ((x) - self.bias[i]))
 
-        y = y.mul(scale_value).add(min_value)
-        
-        return y, self.bias
+            y = y.mul(scale_value).add(min_value)
+            
+            return y, self.bias
+        else:
+            return x, self.bias
 
-def resnet_degrad():
+def resnet_degrad(abla):
     """
     Constructs a ResNet-10 model.
     """
-    model = ResNet()
+    model = ResNet(abla = abla)
     return model
 
 
